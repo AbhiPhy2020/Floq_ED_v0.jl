@@ -1,0 +1,13 @@
+name = "Floq_ED_v0"
+uuid = "e5960cab-3894-47ff-8a68-bcff65012294"
+authors = ["Abhishek Kumar"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.6.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
