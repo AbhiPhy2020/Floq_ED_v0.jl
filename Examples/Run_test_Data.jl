@@ -1,6 +1,13 @@
+# Go into the directory where you want Run_test_Data.jl is and the write following script in mac terminal
+#
+#julia --project="~/Documents/Floq_Exact_Diag/Floq_ED_v0" Run_test_Data.jl
+
+
 using Floq_ED_v0  # Replace "MyPackage" with the name of the package you want to use
 using JSON
 #######
+
+
 #### Values of parameters
 (XL,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XΩ,XNF_Ham, XNF_Zones)=(2,[2.7,2.7,3.4],[1.0,1.0,1.0],0.0,0.0,0.0,0.0,0.0,0.0,6.0,1,3)
 ######
@@ -35,9 +42,10 @@ open("data.json", "w") do io
 end
  println("start")
 # # Read from JSON file
-data = open("data.json", "r") do io
+data1 = open("data.json", "r") do io
     JSON.parse(IOBuffer(read(io, String)))
 end
+print(data1[1])
 #########
 ##########
 #  io2 = open("zzFloq_L"*string(L)*"_pool_"*myparams["adapt_pool"]*"_initstate"*myparams["initial_state"]*"_results.dat","w")
@@ -64,10 +72,7 @@ end
 #     # Write the data to the file
 #  #   write(file, data) =
 
-# #####
 ######
-##println("start")
-
 # read data
 # mydata = readdlm(inputfilename,Any,skipstart=2)
 
@@ -79,17 +84,4 @@ end
 #     run_z_adapt(targetL,inputpars["Jz"],inputpars["Bx"],inputpars["PBCs"],energyvals[indL],inputfilename)
 # else
 #     println("the desired system size is not present in the input file")
-# end
-
-# Example data
-#data = [rand(3, 3) for _ in 1:5]
-
-# # Convert to JSON and write to file
-# open("data.json", "w") do io
-#     JSON.print(io, data)
-# end
-
-# # Read from JSON file
-# data = open("data.json", "r") do io
-#     JSON.parse(IOBuffer(read(io, String)))
 # end
