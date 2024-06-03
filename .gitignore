@@ -4,3 +4,11 @@
 /Manifest.toml
 /docs/Manifest.toml
 /docs/build/
+
+# Ignore everything in 'Examples'
+Examples/*
+
+# But keep 'Examples/Run_test_Data.jl'
+!Examples/Run_test_Data.jl
+!Examples/Run_test_aux_matrix_Data.jl
+!Floq_data_analysis_plots.jl
