@@ -6,13 +6,14 @@ using JSON
 using JSON3
 using JLD
 using Plots
+using LaTeXStrings
 
 # Define a function to run source code from the package
 """
 run_ED_Floq_Sym(L,na,Nt_mesh,Omg,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,No_Fourier_Ham,PBCs)
 """
 function run_ED_Floq_Sym(L,na,Nt_mesh,Omg,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,No_Fourier_Ham,PBCs)
-    # myparams = Dict("PBCs" => PBCs) #Do I need dic for all the parameters?
+    #myparams = Dict("PBCs" => PBCs) #Do I need dic for all the parameters?
     Xtol=1.0e-12
     NFZ= (2^(na-1) - 1) #No_Floq_Zones
     rJ=rB=No_Fourier_Ham
@@ -38,8 +39,9 @@ function run_ED_Floq_Sym(L,na,Nt_mesh,Omg,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,No_
     # Save the data in the following folder
     folder_path="/Users/abhishek22/Documents/Floq_Exact_Diag/Floq_ED_v0/Examples/Output_Data_Plots/Data"
 
-    # To store data in a file
-    res1_string = JSON.json(Dict("Quasienergies" => res_ED_UF[1], "Eigvecs" =>res_ED_UF[2],"Ut_Mesht" => res_ED_UF[3]))
+    #To store data in a file 
+    res1_string = JSON.json(Dict("Quasienergies" => res_ED_UF[1], "Eigvecs" =>res_ED_UF[2],"Ut_Mesht" => res_ED_UF[3],
+    "Eig_Values_Sqr" => res_ED_UF[4], "Eig_Vectors_Sqr" => res_ED_UF[5]))
     file_name = "ED_UF_L_Nt_mesh_Omg_JxJyJz_dJxdJydJz_BxByBz_dBxdBydBz"*string((L,Nt_mesh,Omg,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,No_Fourier_Ham))*"_results.dat"
     file_path = joinpath(folder_path, file_name)
     io1 = open(file_path,"w")
@@ -70,26 +72,31 @@ In this execution, we will run the code for different Hamiltonians and compare t
 println("Start of the execution...")
 
 """
-XXZ Hamiltonian with and wthout magnetic field
+XYZ Hamiltonian with and wthout magnetic field
 """
 
 #(XL,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XΩ,XNF_Ham, XNF_Zones)=(3,[3.7,2.7,1.4],[1.0,1.4,1.0],2.3,3.0,0.0,0.0,0.0,0.0,6.0,1,7)
 (XL,Xna,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XOmg,XNF_Ham)=(3,4,[3.7,2.7,1.4],[1.0,1.4,1.0],2.3,3.0,4.0,0.0,0.0,0.0,6.0,1)
-XNt_mesh=5000
-run_ED_Floq_Sym(XL,Xna,XNt_mesh,XOmg,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XNF_Ham,false)
+#XNt_mesh=5000
+#(XL,Xna,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XOmg,XNF_Ham)=(2,2,[3.7,2.7,1.4],[7.0,1.4,1.0],0.0,3.0,0.0,0.0,0.0,0.0,6.0,1)
+#(XL,Xna,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XOmg,XNF_Ham)=(2,2,[0.0,0.0,0.0],[0.0,0.0,0.0],0.0,3.0,0.0,0.0,0.0,0.0,6.0,1)
+# XNt_mesh=5000
+# run_ED_Floq_Sym(XL,Xna,XNt_mesh,XOmg,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XNF_Ham,false)
 #run_ED_Floq_Sym(L,No_Floq_Zones,Nt_mesh,Omg,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,No_Fourier_Ham,PBCs)
 #run_ED_Floq_Sym(L,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,Omg,No_Fourier_Ham, No_Floq_Zones,Nt_mesh,PBCs)
-# """
-# XYZ Hamiltonian with and wthout magnetic field
-# """
 
-# #(XL,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XΩ,XNF_Ham, XNF_Zones)=(3,[3.7,2.7,1.4],[1.0,1.4,1.0],2.3,3.0,0.0,0.0,0.0,0.0,6.0,1,7)
-# (XL,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XΩ,XNF_Ham, XNF_Zones)=(3,[0.0,0.0,0.0],[0.0,0.0,0.0],2.3,3.0,4.0,0.0,0.0,0.0,6.0,1,7)
-# run_ED_Floq_Sym(L,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,Omg,No_Fourier_Ham, No_Floq_Zones,PBCs)
-
-# """
-# Heisenberg Hamiltonian with and wthout magnetic field
-# """
+"""
+XXZ Hamiltonian with and wthout magnetic field
+"""
+(XL,Xna,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XOmg,XNF_Ham)=(2,4,[2.7,2.7,1.7],[1.4,1.4,1.0],0.0,0.0,0.0,0.0,0.0,0.0,6.0,1)
+MeshL=[2,4,6,8]
+XNt_mesh=5000
+for Xj in MeshL
+    run_ED_Floq_Sym(Xj,Xna,XNt_mesh,XOmg,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XNF_Ham,false)
+end
+"""
+Heisenberg Hamiltonian with and wthout magnetic field
+"""
 
 # #(XL,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XΩ,XNF_Ham, XNF_Zones)=(3,[3.7,2.7,1.4],[1.0,1.4,1.0],2.3,3.0,0.0,0.0,0.0,0.0,6.0,1,7)
 # (XL,XJbarVec,XdJVec,XBx,XBy,XBz,XdBx,XdBy,XdBz,XΩ,XNF_Ham, XNF_Zones)=(3,[0.0,0.0,0.0],[0.0,0.0,0.0],2.3,3.0,4.0,0.0,0.0,0.0,6.0,1,7)

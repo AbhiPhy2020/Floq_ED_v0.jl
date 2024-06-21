@@ -95,6 +95,7 @@ Direct_Floq_Sys(L,Nt_mesh,ω0,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,PBCs)
 """
 function Direct_Floq_Sys(L,Nt_mesh,ω0,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,PBCs)
     #Generation of the mesht and corresponding Bt
+    #Fourier_Mode=Dict("J_Cosine" => [1], "J_Sine" => [0], "B_Cosine" => [1],"B_Sine" => [0])
     dt=2π/(Nt_mesh*ω0)
     Mesht=[t for t in dt:dt:(2π/ω0)]
     Mesh_Jvec_Coeff=[(JbarVec+ dJVec*cos(ω0*t)) for t in Mesht] # Need to change this for differe periodic fucnction
@@ -117,7 +118,13 @@ function Direct_Floq_Sys(L,Nt_mesh,ω0,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,dBz,PBCs)
     Eig_HF_Vals= eigsys.values
     Eig_HF_Vec= eigsys.vectors
     Eig_HF_Vec= Eig_HF_Vec[:,sortperm(real(Eig_HF_Vals))] # To sort eigenvectors according to the eigenvalues
-    return Eig_HF_Vals, Eig_HF_Vec, Ut_Mesh0 
+    ##
+    HFSqr= HF*HF
+    eigsys_Sqr= eigen(HFSqr)
+    Eig_Values_Sqr= eigsys_Sqr.values
+    Eig_Vectors_Sqr= eigsys_Sqr.vectors
+    Eig_Vectors_Sqr= Eig_Vectors_Sqr[:, sortperm(real(Eig_Values_Sqr))] # This sort the eigenvectors in terms of 
+    return Eig_HF_Vals, Eig_HF_Vec, Ut_Mesh0, Eig_Values_Sqr, Eig_Vectors_Sqr
 end 
 
 """
@@ -140,11 +147,11 @@ function Eig_Floq_Ham_Square(L,No_Floq_Zones,Ω,JbarVec,dJVec,Bx,By,Bz,dBx,dBy,d
     for j in 1:NFHam
         Ham_Aux[j]=diagm(j=>[1.0 for i in 1:(2*NFZ+1-j)]) #It could be improved further for exact number of modes.
     end
-    # Ham_Aux[j]=diagm(j=>[1.0 for i in  1:(2*NFZ+j-1)])
+    ## Ham_Aux[j]=diagm(j=>[1.0 for i in  1:(2*NFZ+j-1)])
     Ham0= xyz_matrix(L,Jxbar,Jybar,Jzbar,PBCs)+ magnetic_field_matrix(L,Bxbar,Bybar,Bzbar)
     Ham1= xyz_matrix(L,Jx1,Jy1,Jz1,PBCs)+ magnetic_field_matrix(L,Bx1,By1,Bz1)
     HamF_tot =(kron(Matrix(I,2*NFZ+1,2*NFZ+1),Ham0) + kron(Ham_Aux_Ω0,kronecker(Id,L)) + kron(Ham_Aux[1],Ham1)+ kron(transpose(Ham_Aux[1]),Adjoint(Ham1)))
-    #
+    ##
     eigsys= eigen(HamF_tot)
     Eig_Values= eigsys.values
     Eig_Vectors= eigsys.vectors

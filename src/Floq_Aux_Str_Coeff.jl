@@ -36,21 +36,42 @@ function PauliString_to_Matrix(str::String)
         MatKron = kronecker(MatKron, PmatArr[i])
     end
     return MatKron  
-end 
-"""
-Aux_Diag_Str_Coeff(na::Int64, Omg::Float64)
-    This function generates the Pauli strings and coefficients for the diagonal terms of the auxiliary matrices.
-    For diagonal elements, Symmetric and assymetric Paulirepresentation does not matter. 
-"""
-function Aux_Diag_Str_Coeff(na::Int64,Omg::Float64)
-    Floq_Str_ZI_Arr = Array{String,1}(undef, na+1)
-    Floq_Str_ZI_Arr .= vcat(["I"^(na-j) * "Z" * "I"^(j-1) for j in 1:na], ["I"^na])
-    Floq_Coeff_ZI_Arr = vcat([(-Omg * 2.0^(j-2)) for j in 1:na], [0.5*Omg])
-    #Direct construction of diagonal auxiliary matrix and matching the reconstructed matrix.
+end
+#Note: For diagonal elements, Symmetric and assymetric Paulirepresentation does not matter. 
+function Str_Coeff_Floq_Diag(na::Int64,Om::Float64, tol::Float64)
+    Ω0= Om # Omega=Om= frequency of the the time periodic Hamiltonian
+    Str_ZI_Arr=Array{String, 1}(undef,2^na ) # this will used to all {Z_iI_i} strings
+    Floq_Str_ZI_Arr=String[] # this will used to collect strings with only with non-zero coefficients (weights)
+    Floq_Coeff_ZI_Arr=Float64[] # this will used to collect non-zero coefficients (weights)
+    #1. Construction of Pauli string
+    for j in 1:2^na
+        Floqstr="Z"^0
+        BitStr=reverse(bitstring(j-1))
+        #display(BitStr)
+        for i in 1:na
+            if BitStr[i]== '0'
+                Floqstr *= 'Z'
+            else
+                Floqstr *= 'I'
+            end       
+        end
+        #display(Floqstr) ##to  display the strings of na length
+        Str_ZI_Arr[j]=Floqstr
+    end
+    #2.  Direct construction of diagonal auxiliary matrix
     NFZ= 2^(na-1)
     Ham_Aux_Ω0=Matrix{Float64}
-    Ham_Aux_Ω0=diagm(0=>[(j-NFZ)*Omg for j in  1:(2^na)])
-    #display(Ham_Aux_Ω0) 
+    Ham_Aux_Ω0=diagm(0=>[(j-NFZ)*Ω0 for j in  1:(2^na)])
+    ##display(Ham_Aux_Ω0)
+    #3.Generation of Strings with nonzero coefficients for the diagonal part
+    for j in 1:2^na
+        Str_Coeff=tr(Ham_Aux_Ω0*PauliString_to_Matrix(Str_ZI_Arr[j]))/(2^na)
+        if (abs(Str_Coeff)>tol)
+        push!(Floq_Coeff_ZI_Arr,Str_Coeff)
+        push!(Floq_Str_ZI_Arr,Str_ZI_Arr[j])
+        end
+    end
+    #4. Checking the constructed matrix 
     CheckHam_Aux_Ω0= zeros(size(PauliString_to_Matrix(Floq_Str_ZI_Arr[2])))
     for j in 1:length(Floq_Coeff_ZI_Arr)
         CheckHam_Aux_Ω0 += Floq_Coeff_ZI_Arr[j]*PauliString_to_Matrix(Floq_Str_ZI_Arr[j]) 
@@ -61,7 +82,31 @@ function Aux_Diag_Str_Coeff(na::Int64,Omg::Float64)
     else
         println("Check:The resconstructed matrix does not match the initial auxiliary matrix")
     end 
-    return Floq_Str_ZI_Arr, Floq_Coeff_ZI_Arr #, CheckHam_Aux_Ω0
+    return Floq_Str_ZI_Arr, Floq_Coeff_ZI_Arr#, CheckHam_Aux_Ω0
+end
+
+
+function Aux_Diag_Str_Coeff(na::Int64,Omg::Float64)
+    Floq_Str_ZI_Arr = Array{String,1}(undef, na+1)
+    Floq_Str_ZI_Arr .= vcat(["I"^(na-j) * "Z" * "I"^(j-1) for j in 1:na], ["I"^na])
+    Floq_Coeff_ZI_Arr = vcat([(-Omg * 2.0^(j-2)) for j in 1:na], [0.5*Omg])
+    #Direct construction of diagonal auxiliary matrix
+    NFZ= 2^(na-1)
+    Ham_Aux_Ω0=Matrix{Float64}
+    Ham_Aux_Ω0=diagm(0=>[(j-NFZ)*Omg for j in  1:(2^na)])
+    #display(Ham_Aux_Ω0)
+    #Reconstructed matrix 
+    CheckHam_Aux_Ω0= zeros(size(PauliString_to_Matrix(Floq_Str_ZI_Arr[2])))
+    for j in 1:length(Floq_Coeff_ZI_Arr)
+        CheckHam_Aux_Ω0 += Floq_Coeff_ZI_Arr[j]*PauliString_to_Matrix(Floq_Str_ZI_Arr[j]) 
+    end
+    #display(CheckHam_Aux_Ω0)
+    if all(CheckHam_Aux_Ω0.==Ham_Aux_Ω0)
+        println("Check:The resconstructed matrix is equal to the initial auxiliary matrix")
+    else
+        println("Check:The resconstructed matrix does not match the initial auxiliary matrix")
+    end 
+    return Floq_Str_ZI_Arr, Floq_Coeff_ZI_Arr#, CheckHam_Aux_Ω0
 end
 
 #### Off Diagonal terms using trace
@@ -83,12 +128,15 @@ function generate_pauli_string(N::Int)
     end
     return pauli_strings
 end
+# For diagonal elements, Symmetric and assymetric Paulirepresentation does not matter. 
 """
-Str_Coeff_Floq_OffDiag(na::Int64, r::Int64, tol::Float64)
+    Str_Coeff_Floq_OffDiag(na::Int64, r::Int64, tol::Float64)
     This function generates the Pauli strings and coefficients for the off-diagonal terms auxiliary matrices.
 """
 function Str_Coeff_Floq_OffDiag(na::Int64, r::Int64, tol::Float64)
     r0=r # Fourier coefficient of time periodic Hamiltonian. 
+    #if(r0>=2^na-1)
+    #println("the number of modes can't be greater $2^na")
     Str_XYI_Arr=String[]#Array{String, 1}(undef,3^na) # this will used to all {Z_iI_i} strings
     Floq_Str_XYI_Arr=String[] # this will used to collect strings with only with non-zero coefficients (weights)
     Floq_Coeff_XYI_Arr=ComplexF64[] # this will used to collect non-zero coefficients (weights)
